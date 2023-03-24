@@ -1,0 +1,99 @@
+#version: '3.8'
+#services:
+#  postgres:
+#    image: postgres
+#    ports:
+#      - 8033:5432
+#    environment:
+#      - 'POSTGRES_USER=postgres'
+#      - 'POSTGRES_PASSWORD=Tm5d8q7j!'
+#      - 'POSTGRES_DB=postgres'
+#    volumes:
+#      - postgres-data:/var/lib/postgresql/data
+#
+#  app:
+#    container_name: app-stockx-price-tracker
+#    image: app_stockx_price_tracker
+#    build: ./
+#    environment:
+#      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/shoepricetracker'
+#     # - 'SPRING_DATASOURCE_URL=jdbc:postgresql://stockx-db.cnkbqqwib2bk.us-east-1.rds.amazonaws.com:5432/postgres'
+#      - 'SPRING_DATASOURCE_USERNAME=postgres'
+#      - 'SPRING_DATASOURCE_PASSWORD=Tm5d8q7j!'
+#      - 'SPRING_JPA_HIBERNATE_DDL_AUTO=update'
+#    ports:
+#      - 8054:8054
+#    expose:
+#      - "8054"
+#    depends_on:
+#      - postgres
+#      
+#volumes:
+#  postgres-data:
+###############
+#version: '3'
+#services:
+#  API:
+#    image: 'stockx-price-tracker'
+#    ports:
+#      - "8081:8081"
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#
+#  postgres:
+#    image: postgres
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: 'Tm5d8q7j!'
+#      POSTGRES_DB: shoepricetracker
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+ 
+ #############################
+ 
+version: '3'
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Tm5d8q7j!
+      POSTGRES_DB: shoepricetracker
+    networks:
+      - StockXNetwork
+  spring-boot-app:
+    image: stockxapp
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shoepricetracker
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: Tm5d8q7j!
+    depends_on:
+      - postgres
+    networks:
+      - StockXNetwork
+networks:
+  StockXNetwork:
+###########################
+  
+  #app:
+   # container_name: gallant_fermat
+   # image: shoepricetracker
+   # build: ./
+   # ports:
+   #   - "8054:8054"
+   # depends_on:
+    #  - postgresql
+ # postgresql:
+    #image: shoepricetracker
+    #ports:
+     # - "5432:5432"
+   # environment:
+     # - POSTGRES_PASSWORD=Tm5d8q7j!
+     # - POSTGRES_USER=postgres
+     # - POSTGRES_DB=shoepricetracker
