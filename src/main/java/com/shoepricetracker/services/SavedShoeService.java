@@ -37,7 +37,7 @@ public class SavedShoeService {
 				.referrer("http://google.com").get();
 
 		Element name = doc.select("div.css-0 > p[class*=chakra-text css-3lpefb]").first();
-		Element price = doc.select("div.css-11pc7me > p[class*=chakra-text css-nsvdd9]").first();
+		Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
 
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
 		LocalDateTime date = LocalDateTime.now();

@@ -13,6 +13,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -45,6 +46,10 @@ public class OverallService {
 
 	@Autowired
 	private JavaMailSender mailSender;
+	
+	@Value("${spring.mail.username}")
+	private String sender;
+	
 
 	private static final String BASE_URL = "https://stockx.com";
 	private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36";
@@ -55,7 +60,7 @@ public class OverallService {
 				.referrer("http://google.com").get();
 
 		String shoeName = doc.select("div.css-0 > p[class*=chakra-text css-3lpefb]").first().text();
-		String shoePrice = doc.select("div.css-11pc7me > p[class*=chakra-text css-nsvdd9]").first().text();
+		String shoePrice = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first().text();
 		String imageUrl = doc.select("div.css-tkc8ar > img").first().absUrl("src");
 		System.out.println(imageUrl.toString());
 
@@ -108,7 +113,7 @@ public class OverallService {
 		}
 
 		Element name = doc.select("div.css-0 > p[class*=chakra-text css-3lpefb]").first();
-		Element price = doc.select("div.css-11pc7me > p[class*=chakra-text css-nsvdd9]").first();
+		Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
 		Element imageElement = doc.select("div.css-tkc8ar > img").first();
 
 		System.out.println(name.text());
@@ -134,7 +139,7 @@ public class OverallService {
 		Document doc = Jsoup.connect(BASE_URL + "/sneakers/most-popular").userAgent(USER_AGENT)
 				.referrer("http://google.com").get();
 		Elements names = doc.select("div.css-0 > p[class*=chakra-text css-3lpefb]");
-		Elements prices = doc.select("div.css-11pc7me > p[class*=chakra-text css-nsvdd9]");
+		Elements prices = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]");
 		Elements images = doc.select("div.css-tkc8ar > img");
 
 		String formattedDate = dtf.format(LocalDateTime.now());
@@ -184,7 +189,7 @@ public class OverallService {
 			String formattedDate = dtf.format(date);
 
 			// scrape new price and set
-			Element price = doc.select("div.css-11pc7me > p[class*=chakra-text css-nsvdd9]").first();
+			Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
 			savedShoe.setShoePrice(price.text());
 			savedShoe.setDateAndTime(formattedDate);
 
@@ -227,10 +232,11 @@ public class OverallService {
 
 	}
 
-	@Scheduled(fixedRate = 1800000) // runs every 30 minutes (30 * 60 * 1000)
+	@Scheduled(fixedRate = 30000) // runs every 30 minutes (30 * 60 * 1000)
 	public void checkShoePrice() {
 		final String searchUrl = "https://stockx.com/search?s=";
 		List<ScheduleShoe> scheduleShoes = scheduleRepo.findAll();
+		System.out.println("hello1");
 		for (ScheduleShoe scheduleShoe : scheduleShoes) {
 			try {
 				String name = scheduleShoe.getName();
@@ -241,7 +247,7 @@ public class OverallService {
 						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
 						.referrer("http://google.com").get();
 
-				Element price = doc.select("div.css-11pc7me > p[class*=chakra-text css-nsvdd9]").first();
+				Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
 				String priceString = price.text().replace("$", ""); // remove currency symbol
 				double convertedPrice = Double.parseDouble(priceString);
 
@@ -252,6 +258,8 @@ public class OverallService {
 				// Compare price with original price
 				double originalPrice = scheduleShoe.getOriginalPrice();
 				double threshold = scheduleShoe.getThreshold();
+				
+				System.out.println(convertedPrice + "  " + originalPrice + " " + threshold);
 
 				// Update the original price in the database
 				if (originalPrice == 0) {
@@ -265,7 +273,7 @@ public class OverallService {
 							threshold);
 				}
 			} catch (IOException e) {
-				e.getMessage();
+				e.getStackTrace();
 			}
 		}
 	}
@@ -278,7 +286,7 @@ public class OverallService {
 				+ date;
 
 		SimpleMailMessage msg = new SimpleMailMessage();
-		msg.setFrom("your-email@example.com"); // replace with your email address
+		msg.setFrom(sender); // replace with your email address
 		msg.setTo(email);
 		msg.setSubject(subject);
 		msg.setText(message);

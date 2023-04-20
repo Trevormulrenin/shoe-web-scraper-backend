@@ -67,14 +67,20 @@ services:
       POSTGRES_DB: shoepricetracker
     networks:
       - StockXNetwork
-  spring-boot-app:
-    image: stockxapp
+  backend:
+    image: price-tracker-backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shoepricetracker
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: Tm5d8q7j!
     depends_on:
       - postgres
+    networks:
+      - StockXNetwork
+  frontend:
+    build: ../shoe-tracker-front-end
+    ports:
+      - "3000:3000"
     networks:
       - StockXNetwork
 networks:

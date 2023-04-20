@@ -35,7 +35,7 @@ import com.shoepricetracker.services.SoldPriceHistoryService;
 import com.shoepricetracker.services.UserService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class PriceTrackerController {
 
 	public PriceTrackerController() {

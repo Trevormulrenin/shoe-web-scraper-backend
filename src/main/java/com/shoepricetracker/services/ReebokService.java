@@ -28,7 +28,7 @@ public class ReebokService {
 				.referrer("http://google.com").get();
 
 		String name = doc.select("div.css-0 > p[class*=chakra-text css-3lpefb]").first().text();
-		String price = doc.select("div.css-11pc7me > p[class*=chakra-text css-nsvdd9]").first().text();
+		String price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first().text();
 		
 		Element imageElement = doc.select("div.css-tkc8ar > img").first();
 	    String imageUrl = imageElement.absUrl("src"); // get the absolute image URL
