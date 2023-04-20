@@ -14,22 +14,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.shoepricetracker.exceptions.ShoeNotFoundException;
 import com.shoepricetracker.exceptions.UserNotFoundException;
-import com.shoepricetracker.models.AdidasShoe;
 import com.shoepricetracker.models.ComparedShoe;
-import com.shoepricetracker.models.JordanShoe;
-import com.shoepricetracker.models.NikeShoe;
 import com.shoepricetracker.models.OverallShoe;
-import com.shoepricetracker.models.ReebokShoe;
 import com.shoepricetracker.models.SavedShoe;
 import com.shoepricetracker.models.ScheduleShoe;
+import com.shoepricetracker.models.Shoe;
 import com.shoepricetracker.models.SoldPriceHistory;
 import com.shoepricetracker.models.StockXUser;
-import com.shoepricetracker.services.AdidasService;
 import com.shoepricetracker.services.ComparedShoeService;
-import com.shoepricetracker.services.JordanService;
-import com.shoepricetracker.services.NikeService;
+import com.shoepricetracker.services.NewLowestService;
 import com.shoepricetracker.services.OverallService;
-import com.shoepricetracker.services.ReebokService;
 import com.shoepricetracker.services.SavedShoeService;
 import com.shoepricetracker.services.SoldPriceHistoryService;
 import com.shoepricetracker.services.UserService;
@@ -43,20 +37,19 @@ public class PriceTrackerController {
 
 	@Autowired
 	private OverallService overallService;
+
 	@Autowired
-	private AdidasService adidasService;
-	@Autowired
-	private JordanService jordanService;
-	@Autowired
-	private ReebokService reebokService;
+	private NewLowestService newLowestService;
+
 	@Autowired
 	private SavedShoeService savedShoeService;
+
 	@Autowired
 	private ComparedShoeService comparedShoeService;
+
 	@Autowired
 	private UserService userService;
-	@Autowired
-	private NikeService nikeService;
+
 	@Autowired
 	private SoldPriceHistoryService soldPriceHistoryService;
 
@@ -67,46 +60,12 @@ public class PriceTrackerController {
 		return userService.login(user);
 	}
 
-	@GetMapping("/newLowest")
-	public OverallShoe getNewLowest() throws IOException {
+	@GetMapping("/newLowest/{brand}")
+	public Shoe getNewLowest(@PathVariable("brand") String brand) throws IOException {
 
-		OverallShoe newLowestShoe = overallService.getNewLowest();
+		Shoe newLowestShoe = newLowestService.getNewLowest(brand);
 		System.out.println(newLowestShoe.toString());
 		return newLowestShoe;
-	}
-
-	@GetMapping("/adidasNewLowest")
-	public AdidasShoe getAdidasNewLowestAskingPrice() throws IOException {
-
-		AdidasShoe adidasShoe = adidasService.getAdidasNewLowest();
-
-		return adidasShoe;
-	}
-
-	@GetMapping("/jordanNewLowest")
-	public JordanShoe getJordanNewLowestAskingPrice() throws IOException {
-
-		JordanShoe jordanShoe = jordanService.getJordanNewLowestAskingPrice();
-
-		return jordanShoe;
-	}
-
-	@GetMapping("/reebokNewLowest")
-	public ReebokShoe getReebokNewLowestAskingPrice() throws IOException {
-
-		ReebokShoe reebokShoe = reebokService.getReebokNewLowestAskingPrice();
-		System.out.println(reebokShoe.toString());
-
-		return reebokShoe;
-	}
-
-	@GetMapping("/nikeNewLowest")
-	public NikeShoe getNikeNewLowestAskingPrice() throws IOException {
-
-		NikeShoe nikeShoe = nikeService.getNikeNewLowest();
-		System.out.println(nikeShoe.toString());
-
-		return nikeShoe;
 	}
 
 	// needs look
@@ -119,18 +78,18 @@ public class PriceTrackerController {
 	}
 
 	@GetMapping("/searchByShoe/{shoeName}")
-	public OverallShoe searchByShoeName(@PathVariable("shoeName") String shoeName) throws IOException {
+	public Shoe searchByShoeName(@PathVariable("shoeName") String shoeName) throws IOException {
 
-		OverallShoe overallShoe = overallService.searchByShoeName(shoeName);
+		Shoe searchShoe = overallService.searchByShoeName(shoeName);
 
-		return overallShoe;
+		return searchShoe;
 	}
 
 	// Only displays images for first 4 results, the rest are blank
 	@GetMapping("/mostPopular")
-	public List<OverallShoe> mostPopular() throws IOException {
+	public List<Shoe> mostPopular() throws IOException {
 
-		List<OverallShoe> mostPopularList = overallService.mostPopular();
+		List<Shoe> mostPopularList = overallService.mostPopular();
 
 		return mostPopularList;
 
@@ -168,20 +127,23 @@ public class PriceTrackerController {
 	}
 
 	@GetMapping("/priceHistory/{shoeId}/{email}")
-	public List<SoldPriceHistory> viewSoldPriceHistory(@PathVariable("shoeId") int shoeId, @PathVariable("email") String email) throws IOException {
+	public List<SoldPriceHistory> viewSoldPriceHistory(@PathVariable("shoeId") int shoeId,
+			@PathVariable("email") String email) throws IOException {
 		List<SoldPriceHistory> soldPriceHistory = soldPriceHistoryService.viewSoldPriceHistory(shoeId, email);
-		
+
 		return soldPriceHistory;
-	} 
-	
+	}
+
 	@PutMapping("/updatePrice/{shoeId}/{email}")
-	public SavedShoe updatePrice(@PathVariable("shoeId") int shoeId, @PathVariable("email") String email) throws ShoeNotFoundException, IOException {
+	public SavedShoe updatePrice(@PathVariable("shoeId") int shoeId, @PathVariable("email") String email)
+			throws ShoeNotFoundException, IOException {
 		SavedShoe savedShoe = overallService.updatePrice(shoeId, email);
 		return savedShoe;
 	}
-	
+
 	@PostMapping("/schedule-shoe/{shoeId}/{threshold}")
-	public ScheduleShoe shoeScheduler(@PathVariable("shoeId") int shoeId, @PathVariable("threshold") int threshold) throws ShoeNotFoundException, IOException {
+	public ScheduleShoe shoeScheduler(@PathVariable("shoeId") int shoeId, @PathVariable("threshold") int threshold)
+			throws ShoeNotFoundException, IOException {
 		ScheduleShoe scheduleShoe = overallService.shoeScheduler(shoeId, threshold);
 		return scheduleShoe;
 	}

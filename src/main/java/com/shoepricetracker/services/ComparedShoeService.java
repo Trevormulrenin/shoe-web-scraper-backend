@@ -56,7 +56,7 @@ public class ComparedShoeService {
 
 	    Element name = doc.select("div.css-0 > p[class*=chakra-text css-3lpefb]").first();
 	    System.out.println(name.text());
-	    Element price = doc.select("div.css-aduuu0 > p[class*=chakra-text css-9ryi0c]").first();
+	    Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
 	    System.out.println(price.text());
 
 	    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");

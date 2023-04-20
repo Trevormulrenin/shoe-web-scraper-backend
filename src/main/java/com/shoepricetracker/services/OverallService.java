@@ -23,6 +23,7 @@ import com.shoepricetracker.exceptions.ShoeNotFoundException;
 import com.shoepricetracker.models.OverallShoe;
 import com.shoepricetracker.models.SavedShoe;
 import com.shoepricetracker.models.ScheduleShoe;
+import com.shoepricetracker.models.Shoe;
 import com.shoepricetracker.models.SoldPriceHistory;
 import com.shoepricetracker.repos.OverallRepository;
 import com.shoepricetracker.repos.SavedShoeRepository;
@@ -46,29 +47,13 @@ public class OverallService {
 
 	@Autowired
 	private JavaMailSender mailSender;
-	
+
 	@Value("${spring.mail.username}")
 	private String sender;
-	
 
 	private static final String BASE_URL = "https://stockx.com";
 	private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36";
 	private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
-
-	public OverallShoe getNewLowest() throws IOException {
-		Document doc = Jsoup.connect(BASE_URL + "/sneakers/recent-asks").userAgent(USER_AGENT)
-				.referrer("http://google.com").get();
-
-		String shoeName = doc.select("div.css-0 > p[class*=chakra-text css-3lpefb]").first().text();
-		String shoePrice = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first().text();
-		String imageUrl = doc.select("div.css-tkc8ar > img").first().absUrl("src");
-		System.out.println(imageUrl.toString());
-
-		String formattedDate = dtf.format(LocalDateTime.now());
-
-		OverallShoe newLowestShoe = new OverallShoe(shoeName, shoePrice, formattedDate, imageUrl);
-		return newLowestShoe;
-	}
 
 	public OverallShoe getLatestSaleByShoeInput() throws IOException {
 		boolean retryInput = true;
@@ -97,9 +82,9 @@ public class OverallService {
 		return overallShoe;
 	}
 
-	public OverallShoe searchByShoeName(String shoeName) throws IOException {
+	public Shoe searchByShoeName(String shoeName) throws IOException {
 
-		OverallShoe overallShoe = new OverallShoe();
+		Shoe overallShoe = new Shoe();
 		Document doc = null;
 		String formattedShoeName = shoeName.toLowerCase().replaceAll("[ .()]", "+");
 		System.out.println("formattedShoeName =" + formattedShoeName);
@@ -125,17 +110,17 @@ public class OverallService {
 		LocalDateTime date = LocalDateTime.now();
 		String formattedDate = dtf.format(date);
 
-		overallShoe.setShoeName(name.text());
-		overallShoe.setShoePrice(price.text());
+		overallShoe.setName(name.text());
+		overallShoe.setPrice(price.text());
 		overallShoe.setDateAndTime(formattedDate);
 		overallShoe.setImageUrl(imageUrl);
 
 		return overallShoe;
 	}
 
-	public List<OverallShoe> mostPopular() throws IOException {
+	public List<Shoe> mostPopular() throws IOException {
 
-		List<OverallShoe> mostPopularList = new ArrayList<>();
+		List<Shoe> mostPopularList = new ArrayList<>();
 		Document doc = Jsoup.connect(BASE_URL + "/sneakers/most-popular").userAgent(USER_AGENT)
 				.referrer("http://google.com").get();
 		Elements names = doc.select("div.css-0 > p[class*=chakra-text css-3lpefb]");
@@ -148,7 +133,7 @@ public class OverallService {
 			String name = names.get(i).text();
 			String price = prices.get(i).text();
 			String imageUrl = images.get(i).absUrl("src");
-			mostPopularList.add(new OverallShoe(name, price, formattedDate, imageUrl));
+			mostPopularList.add(new Shoe(name, price, formattedDate, imageUrl));
 		}
 
 		return mostPopularList;
@@ -214,11 +199,11 @@ public class OverallService {
 
 			String price = savedShoe.getShoePrice();
 			String priceString = price.replace("$", "");
-			double newPrice = Double.parseDouble(priceString);
+			double oldPrice = Double.parseDouble(priceString);
 
 			scheduleShoe.setName(savedShoe.getShoeName());
 			scheduleShoe.setEmail(savedShoe.getEmail());
-			scheduleShoe.setOriginalPrice(newPrice);
+			scheduleShoe.setLastKnownPrice(oldPrice);
 			scheduleShoe.setThreshold(threshold);
 			scheduleShoe.setDateAndTime(savedShoe.getDateAndTime());
 
@@ -232,50 +217,53 @@ public class OverallService {
 
 	}
 
-	@Scheduled(fixedRate = 30000) // runs every 30 minutes (30 * 60 * 1000)
+	@Scheduled(fixedRate = 1800000) // runs every 30 minutes (30 * 60 * 1000)
 	public void checkShoePrice() {
-		final String searchUrl = "https://stockx.com/search?s=";
-		List<ScheduleShoe> scheduleShoes = scheduleRepo.findAll();
-		System.out.println("hello1");
-		for (ScheduleShoe scheduleShoe : scheduleShoes) {
-			try {
-				String name = scheduleShoe.getName();
-				name = name.toLowerCase();
-				name = name.replaceAll(" ", "+");
+	    final String searchUrl = "https://stockx.com/search?s=";
+	    List<ScheduleShoe> scheduleShoes = scheduleRepo.findAll();
 
-				final Document doc = Jsoup.connect(searchUrl + name).userAgent(
-						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
-						.referrer("http://google.com").get();
+	    for (ScheduleShoe scheduleShoe : scheduleShoes) {
+	        try {
+	            String name = scheduleShoe.getName();
+	            name = name.toLowerCase();
+	            name = name.replaceAll(" ", "+");
 
-				Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
-				String priceString = price.text().replace("$", ""); // remove currency symbol
-				double convertedPrice = Double.parseDouble(priceString);
+	            final Document doc = Jsoup.connect(searchUrl + name).userAgent(
+	                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
+	                    .referrer("http://google.com").get();
 
-				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
-				LocalDateTime date = LocalDateTime.now();
-				String formattedDate = dtf.format(date);
+	            Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
+	            String priceString = price.text().replace("$", ""); // remove currency symbol
+	            double convertedPrice = Double.parseDouble(priceString);
 
-				// Compare price with original price
-				double originalPrice = scheduleShoe.getOriginalPrice();
-				double threshold = scheduleShoe.getThreshold();
-				
-				System.out.println(convertedPrice + "  " + originalPrice + " " + threshold);
+	            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
+	            LocalDateTime date = LocalDateTime.now();
+	            String formattedDate = dtf.format(date);
 
-				// Update the original price in the database
-				if (originalPrice == 0) {
-					scheduleShoe.setOriginalPrice(convertedPrice);
-					scheduleRepo.save(scheduleShoe);
-				}
+	            // Compare price with last known price
+	            double lastKnownPrice = scheduleShoe.getLastKnownPrice();
+	            double threshold = scheduleShoe.getThreshold();
 
-				// Send email if price drops below a given point
-				if (convertedPrice < threshold) {
-					sendEmail(scheduleShoe.getEmail(), scheduleShoe.getName(), price, originalPrice, formattedDate,
-							threshold);
-				}
-			} catch (IOException e) {
-				e.getStackTrace();
-			}
-		}
+	            System.out.println(
+	                    "New: " + convertedPrice + " Last known: " + lastKnownPrice + " Threshold:  " + threshold);
+
+	            // Update the last known price in the database
+	            if (lastKnownPrice == 0) {
+	                scheduleShoe.setLastKnownPrice(convertedPrice);
+	                scheduleRepo.save(scheduleShoe);
+	            }
+
+	            // Send email if price drops below a given point
+	            if (convertedPrice < threshold && convertedPrice != lastKnownPrice) {
+	                scheduleShoe.setLastKnownPrice(convertedPrice);
+	                scheduleRepo.save(scheduleShoe);
+	                sendEmail(scheduleShoe.getEmail(), scheduleShoe.getName(), price, lastKnownPrice, formattedDate,
+	                        threshold);
+	            }
+	        } catch (IOException e) {
+	            e.getStackTrace();
+	        }
+	    }
 	}
 
 	private void sendEmail(String email, String name, Element price, double originalPrice, String date,

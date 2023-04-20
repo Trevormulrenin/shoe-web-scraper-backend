@@ -16,26 +16,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public @Data class ScheduleShoe {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@Column(name = "name")
 	private String name;
-	
+
 	@Column(name = "email")
 	private String email;
-	
+
 	@Column(name = "date_and_time")
 	private String dateAndTime;
-	
+
 	@Column(name = "threshold")
 	private int threshold;
-	
-	@Column(name = "original_price")
-	private double originalPrice;
-	
-	@Column(name = "newPrice")
-	private double newPrice;
-}	
+
+	@Column(name = "last_known_price")
+	private Double lastKnownPrice;
+
+}
