@@ -68,7 +68,7 @@ services:
     networks:
       - StockXNetwork
   backend:
-    image: shoe-tracker-backend
+    image: price-tracker-backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shoepricetracker
       SPRING_DATASOURCE_USERNAME: postgres
@@ -78,7 +78,7 @@ services:
     networks:
       - StockXNetwork
   frontend:
-    build: ../../shoe-tracker-front-end
+    build: ../shoe-tracker-front-end
     ports:
       - "3000:3000"
     networks:

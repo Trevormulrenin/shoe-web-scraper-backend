@@ -190,96 +190,96 @@ public class OverallService {
 
 		return savedShoe;
 	}
-
-	public ScheduleShoe shoeScheduler(int shoeId, int threshold) throws IOException, ShoeNotFoundException {
-		ScheduleShoe scheduleShoe = new ScheduleShoe();
-
-		try {
-			SavedShoe savedShoe = savedShoeRepo.findSavedShoeById(shoeId);
-
-			String price = savedShoe.getShoePrice();
-			String priceString = price.replace("$", "");
-			double oldPrice = Double.parseDouble(priceString);
-
-			scheduleShoe.setName(savedShoe.getShoeName());
-			scheduleShoe.setEmail(savedShoe.getEmail());
-			scheduleShoe.setLastKnownPrice(oldPrice);
-			scheduleShoe.setThreshold(threshold);
-			scheduleShoe.setDateAndTime(savedShoe.getDateAndTime());
-
-			scheduleRepo.save(scheduleShoe);
-
-		} catch (ShoeNotFoundException e) {
-			e.getMessage();
-		}
-
-		return scheduleShoe;
-
-	}
-
-	@Scheduled(fixedRate = 1800000) // runs every 30 minutes (30 * 60 * 1000)
-	public void checkShoePrice() {
-	    final String searchUrl = "https://stockx.com/search?s=";
-	    List<ScheduleShoe> scheduleShoes = scheduleRepo.findAll();
-
-	    for (ScheduleShoe scheduleShoe : scheduleShoes) {
-	        try {
-	            String name = scheduleShoe.getName();
-	            name = name.toLowerCase();
-	            name = name.replaceAll(" ", "+");
-
-	            final Document doc = Jsoup.connect(searchUrl + name).userAgent(
-	                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
-	                    .referrer("http://google.com").get();
-
-	            Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
-	            String priceString = price.text().replace("$", ""); // remove currency symbol
-	            double convertedPrice = Double.parseDouble(priceString);
-
-	            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
-	            LocalDateTime date = LocalDateTime.now();
-	            String formattedDate = dtf.format(date);
-
-	            // Compare price with last known price
-	            double lastKnownPrice = scheduleShoe.getLastKnownPrice();
-	            double threshold = scheduleShoe.getThreshold();
-
-	            System.out.println(
-	                    "New: " + convertedPrice + " Last known: " + lastKnownPrice + " Threshold:  " + threshold);
-
-	            // Update the last known price in the database
-	            if (lastKnownPrice == 0) {
-	                scheduleShoe.setLastKnownPrice(convertedPrice);
-	                scheduleRepo.save(scheduleShoe);
-	            }
-
-	            // Send email if price drops below a given point
-	            if (convertedPrice < threshold && convertedPrice != lastKnownPrice) {
-	                scheduleShoe.setLastKnownPrice(convertedPrice);
-	                scheduleRepo.save(scheduleShoe);
-	                sendEmail(scheduleShoe.getEmail(), scheduleShoe.getName(), price, lastKnownPrice, formattedDate,
-	                        threshold);
-	            }
-	        } catch (IOException e) {
-	            e.getStackTrace();
-	        }
-	    }
-	}
-
-	private void sendEmail(String email, String name, Element price, double originalPrice, String date,
-			double threshold) {
-		String subject = "Price drop alert for " + name;
-		String message = "The price for " + name + " has dropped below the threshold of $" + threshold + ".\n\n"
-				+ "Current price: " + price.text() + "\n" + "Original price: $" + originalPrice + "\n" + "Date: "
-				+ date;
-
-		SimpleMailMessage msg = new SimpleMailMessage();
-		msg.setFrom(sender); // replace with your email address
-		msg.setTo(email);
-		msg.setSubject(subject);
-		msg.setText(message);
-		mailSender.send(msg);
-		System.out.println("Email sent successfully.");
-	}
+//
+//	public ScheduleShoe shoeScheduler(int shoeId, int threshold) throws IOException, ShoeNotFoundException {
+//		ScheduleShoe scheduleShoe = new ScheduleShoe();
+//
+//		try {
+//			SavedShoe savedShoe = savedShoeRepo.findSavedShoeById(shoeId);
+//
+//			String price = savedShoe.getShoePrice();
+//			String priceString = price.replace("$", "");
+//			double oldPrice = Double.parseDouble(priceString);
+//
+//			scheduleShoe.setName(savedShoe.getShoeName());
+//			scheduleShoe.setEmail(savedShoe.getEmail());
+//			scheduleShoe.setLastKnownPrice(oldPrice);
+//			scheduleShoe.setThreshold(threshold);
+//			scheduleShoe.setDateAndTime(savedShoe.getDateAndTime());
+//
+//			scheduleRepo.save(scheduleShoe);
+//
+//		} catch (ShoeNotFoundException e) {
+//			e.getMessage();
+//		}
+//
+//		return scheduleShoe;
+//
+//	}
+//
+//	@Scheduled(fixedRate = 1800000) // runs every 30 minutes (30 * 60 * 1000)
+//	public void checkShoePrice() {
+//	    final String searchUrl = "https://stockx.com/search?s=";
+//	    List<ScheduleShoe> scheduleShoes = scheduleRepo.findAll();
+//
+//	    for (ScheduleShoe scheduleShoe : scheduleShoes) {
+//	        try {
+//	            String name = scheduleShoe.getName();
+//	            name = name.toLowerCase();
+//	            name = name.replaceAll(" ", "+");
+//
+//	            final Document doc = Jsoup.connect(searchUrl + name).userAgent(
+//	                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
+//	                    .referrer("http://google.com").get();
+//
+//	            Element price = doc.select("div.css-1i6xaee > p[class*=chakra-text css-nsvdd9]").first();
+//	            String priceString = price.text().replace("$", ""); // remove currency symbol
+//	            double convertedPrice = Double.parseDouble(priceString);
+//
+//	            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
+//	            LocalDateTime date = LocalDateTime.now();
+//	            String formattedDate = dtf.format(date);
+//
+//	            // Compare price with last known price
+//	            double lastKnownPrice = scheduleShoe.getLastKnownPrice();
+//	            double threshold = scheduleShoe.getThreshold();
+//
+//	            System.out.println(
+//	                    "New: " + convertedPrice + " Last known: " + lastKnownPrice + " Threshold:  " + threshold);
+//
+//	            // Update the last known price in the database
+//	            if (lastKnownPrice == 0) {
+//	                scheduleShoe.setLastKnownPrice(convertedPrice);
+//	                scheduleRepo.save(scheduleShoe);
+//	            }
+//
+//	            // Send email if price drops below a given point
+//	            if (convertedPrice < threshold && convertedPrice != lastKnownPrice) {
+//	                scheduleShoe.setLastKnownPrice(convertedPrice);
+//	                scheduleRepo.save(scheduleShoe);
+//	                sendEmail(scheduleShoe.getEmail(), scheduleShoe.getName(), price, lastKnownPrice, formattedDate,
+//	                        threshold);
+//	            }
+//	        } catch (IOException e) {
+//	            e.getStackTrace();
+//	        }
+//	    }
+//	}
+//
+//	private void sendEmail(String email, String name, Element price, double originalPrice, String date,
+//			double threshold) {
+//		String subject = "Price drop alert for " + name;
+//		String message = "The price for " + name + " has dropped below the threshold of $" + threshold + ".\n\n"
+//				+ "Current price: " + price.text() + "\n" + "Original price: $" + originalPrice + "\n" + "Date: "
+//				+ date;
+//
+//		SimpleMailMessage msg = new SimpleMailMessage();
+//		msg.setFrom(sender); // replace with your email address
+//		msg.setTo(email);
+//		msg.setSubject(subject);
+//		msg.setText(message);
+//		mailSender.send(msg);
+//		System.out.println("Email sent successfully.");
+//	}
 
 }

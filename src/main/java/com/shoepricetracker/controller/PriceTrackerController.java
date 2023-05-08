@@ -2,6 +2,7 @@ package com.shoepricetracker.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.TreeSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,7 +18,6 @@ import com.shoepricetracker.exceptions.UserNotFoundException;
 import com.shoepricetracker.models.ComparedShoe;
 import com.shoepricetracker.models.OverallShoe;
 import com.shoepricetracker.models.SavedShoe;
-import com.shoepricetracker.models.ScheduleShoe;
 import com.shoepricetracker.models.Shoe;
 import com.shoepricetracker.models.SoldPriceHistory;
 import com.shoepricetracker.models.StockXUser;
@@ -112,8 +112,8 @@ public class PriceTrackerController {
 	}
 
 	@GetMapping("/getAllSavedShoes/{email}")
-	public List<SavedShoe> getAllSavedShoes(@PathVariable("email") String email) throws IOException {
-		List<SavedShoe> getAllSavedShoes = savedShoeService.getAllSavedShoes(email);
+	public TreeSet<SavedShoe> getAllSavedShoes(@PathVariable("email") String email) throws IOException {
+		TreeSet<SavedShoe> getAllSavedShoes = savedShoeService.getAllSavedShoes(email);
 
 		return getAllSavedShoes;
 	}
@@ -141,10 +141,10 @@ public class PriceTrackerController {
 		return savedShoe;
 	}
 
-	@PostMapping("/schedule-shoe/{shoeId}/{threshold}")
-	public ScheduleShoe shoeScheduler(@PathVariable("shoeId") int shoeId, @PathVariable("threshold") int threshold)
-			throws ShoeNotFoundException, IOException {
-		ScheduleShoe scheduleShoe = overallService.shoeScheduler(shoeId, threshold);
-		return scheduleShoe;
-	}
+//	@PostMapping("/schedule-shoe/{shoeId}/{threshold}")
+//	public ScheduleShoe shoeScheduler(@PathVariable("shoeId") int shoeId, @PathVariable("threshold") int threshold)
+//			throws ShoeNotFoundException, IOException {
+//		ScheduleShoe scheduleShoe = overallService.shoeScheduler(shoeId, threshold);
+//		return scheduleShoe;
+//	}
 }

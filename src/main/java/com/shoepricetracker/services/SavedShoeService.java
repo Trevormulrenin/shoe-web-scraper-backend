@@ -3,7 +3,7 @@ package com.shoepricetracker.services;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.TreeSet;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -63,12 +63,9 @@ public class SavedShoeService {
 		return savedShoeRepo.findSavedShoe(shoeId, email);
 	}
 
-	public List<SavedShoe> getAllSavedShoes(String email) {
-
-		List<SavedShoe> savedShoes = null;
-
-		savedShoes = savedShoeRepo.getAllSavedShoes(email);
-
-		return savedShoes;
+	public TreeSet<SavedShoe> getAllSavedShoes(String email) {
+	    TreeSet<SavedShoe> savedShoes = new TreeSet<>();
+	    savedShoes.addAll(savedShoeRepo.getAllSavedShoes(email));
+	    return savedShoes;
 	}
 }

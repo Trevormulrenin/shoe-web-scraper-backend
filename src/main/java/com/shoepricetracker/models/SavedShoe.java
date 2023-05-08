@@ -15,25 +15,30 @@ import lombok.NoArgsConstructor;
 @Table(name = "saved_shoe")
 @NoArgsConstructor
 @AllArgsConstructor
-public @Data class SavedShoe {
+public @Data class SavedShoe implements Comparable<SavedShoe> {
 
-	@Id
-	@Column(name = "shoe_id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int shoeId;
+    @Id
+    @Column(name = "shoe_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int shoeId;
 
-	@Column(name = "shoe_name")
-	private String shoeName;
+    @Column(name = "shoe_name")
+    private String shoeName;
 
-	@Column(name = "shoe_price")
-	private String shoePrice;
-	
-	@Column(name = "email")
-	private String email;
+    @Column(name = "shoe_price")
+    private String shoePrice;
 
-	@Column(name = "date_and_time")
-	private String dateAndTime;
-	
-	@Column(name = "image_url")
-	private String imageUrl;
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "date_and_time")
+    private String dateAndTime;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Override
+    public int compareTo(SavedShoe other) {
+        return Integer.compare(this.shoeId, other.shoeId);
+    }
 }
