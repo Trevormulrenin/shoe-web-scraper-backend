@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +17,7 @@ import com.shoepricetracker.exceptions.UserNotFoundException;
 import com.shoepricetracker.models.ComparedShoe;
 import com.shoepricetracker.models.OverallShoe;
 import com.shoepricetracker.models.SavedShoe;
+import com.shoepricetracker.models.ScheduleShoe;
 import com.shoepricetracker.models.Shoe;
 import com.shoepricetracker.models.SoldPriceHistory;
 import com.shoepricetracker.models.StockXUser;
@@ -32,28 +32,25 @@ import com.shoepricetracker.services.UserService;
 @CrossOrigin(origins = "*")
 public class PriceTrackerController {
 
-	public PriceTrackerController() {
-	}
-
-	@Autowired
-	private OverallService overallService;
-
-	@Autowired
-	private NewLowestService newLowestService;
-
-	@Autowired
-	private SavedShoeService savedShoeService;
-
-	@Autowired
-	private ComparedShoeService comparedShoeService;
-
-	@Autowired
-	private UserService userService;
-
-	@Autowired
-	private SoldPriceHistoryService soldPriceHistoryService;
+	private final OverallService overallService;
+	private final NewLowestService newLowestService;
+	private final SavedShoeService savedShoeService;
+	private final ComparedShoeService comparedShoeService;
+	private final UserService userService;
+	private final SoldPriceHistoryService soldPriceHistoryService;
 
 	final String url = "https://stockx.com";
+
+	public PriceTrackerController(OverallService overallService, NewLowestService newLowestService,
+			SavedShoeService savedShoeService, ComparedShoeService comparedShoeService, UserService userService,
+			SoldPriceHistoryService soldPriceHistoryService) {
+		this.overallService = overallService;
+		this.newLowestService = newLowestService;
+		this.savedShoeService = savedShoeService;
+		this.comparedShoeService = comparedShoeService;
+		this.userService = userService;
+		this.soldPriceHistoryService = soldPriceHistoryService;
+	}
 
 	@PostMapping("/login")
 	public StockXUser loginUser(@RequestBody StockXUser user) throws UserNotFoundException {
@@ -98,6 +95,7 @@ public class PriceTrackerController {
 	@PostMapping("/saveShoe/{shoeName}/{email}")
 	public SavedShoe saveShoe(@PathVariable("shoeName") String shoeName, @PathVariable("email") String email)
 			throws IOException {
+
 		SavedShoe saveShoe = savedShoeService.saveShoe(shoeName, email);
 
 		return saveShoe;
@@ -106,6 +104,7 @@ public class PriceTrackerController {
 	@GetMapping("/getSavedShoe/{shoeId}/{email}")
 	public SavedShoe getSavedShoe(@PathVariable("shoeId") int shoeId, @PathVariable("email") String email)
 			throws ShoeNotFoundException {
+
 		SavedShoe getSavedShoe = savedShoeService.getSavedShoe(shoeId, email);
 
 		return getSavedShoe;
@@ -113,6 +112,7 @@ public class PriceTrackerController {
 
 	@GetMapping("/getAllSavedShoes/{email}")
 	public TreeSet<SavedShoe> getAllSavedShoes(@PathVariable("email") String email) throws IOException {
+
 		TreeSet<SavedShoe> getAllSavedShoes = savedShoeService.getAllSavedShoes(email);
 
 		return getAllSavedShoes;
@@ -121,6 +121,7 @@ public class PriceTrackerController {
 	@PostMapping("/comparePrice/{shoeId}/{email}")
 	public ComparedShoe comparePrice(@PathVariable("shoeId") int shoeId, @PathVariable("email") String email)
 			throws ShoeNotFoundException, IOException {
+
 		ComparedShoe comparePrice = comparedShoeService.comparePrice(shoeId, email);
 
 		return comparePrice;
@@ -129,6 +130,7 @@ public class PriceTrackerController {
 	@GetMapping("/priceHistory/{shoeId}/{email}")
 	public List<SoldPriceHistory> viewSoldPriceHistory(@PathVariable("shoeId") int shoeId,
 			@PathVariable("email") String email) throws IOException {
+		
 		List<SoldPriceHistory> soldPriceHistory = soldPriceHistoryService.viewSoldPriceHistory(shoeId, email);
 
 		return soldPriceHistory;
@@ -137,14 +139,24 @@ public class PriceTrackerController {
 	@PutMapping("/updatePrice/{shoeId}/{email}")
 	public SavedShoe updatePrice(@PathVariable("shoeId") int shoeId, @PathVariable("email") String email)
 			throws ShoeNotFoundException, IOException {
+		
 		SavedShoe savedShoe = overallService.updatePrice(shoeId, email);
+		
 		return savedShoe;
 	}
 
-//	@PostMapping("/schedule-shoe/{shoeId}/{threshold}")
-//	public ScheduleShoe shoeScheduler(@PathVariable("shoeId") int shoeId, @PathVariable("threshold") int threshold)
-//			throws ShoeNotFoundException, IOException {
-//		ScheduleShoe scheduleShoe = overallService.shoeScheduler(shoeId, threshold);
-//		return scheduleShoe;
-//	}
+	@PostMapping("/createUser/{email}/{password}")
+	public String createUser(@PathVariable String email, @PathVariable String password) {
+		
+		String success = userService.createUser(email, password);
+		
+		return success;
+	}
+
+	@PostMapping("/schedule-shoe/{shoeId}/{threshold}")
+	public ScheduleShoe shoeScheduler(@PathVariable("shoeId") int shoeId, @PathVariable("threshold") int threshold)
+			throws ShoeNotFoundException, IOException {
+		ScheduleShoe scheduleShoe = overallService.shoeScheduler(shoeId, threshold);
+		return scheduleShoe;
+	}
 }
